@@ -214,26 +214,52 @@ function MenuIcon({ open }) {
 }
 
 function OrbitGraphic() {
+  const [activeAgent, setActiveAgent] = useState('');
+  const agents = [
+    { id: 'planner', step: '01 / PLAN', name: 'Planner', description: 'Breaks down the task', detail: 'Turns the research prompt into a clear sequence of focused sub-tasks.', position: 'agent-planner', path: 'M300 218 C220 165 170 115 118 95' },
+    { id: 'researcher', step: '02 / RETRIEVE', name: 'Researcher', description: 'Finds supporting evidence', detail: 'Gathers supporting material from connected research sources.', position: 'agent-researcher', path: 'M300 218 C380 165 430 115 482 95' },
+    { id: 'critic', step: '03 / EVALUATE', name: 'Critic', description: 'Checks gaps and quality', detail: 'Reviews evidence, identifies gaps and decides whether another research pass is needed.', position: 'agent-critic', path: 'M300 218 C220 270 170 330 118 355' },
+    { id: 'writer', step: '04 / SYNTHESIZE', name: 'Writer', description: 'Builds the final report', detail: 'Synthesizes reviewed findings into a structured report with citations.', position: 'agent-writer', path: 'M300 218 C380 270 430 330 482 355' },
+  ];
+  const active = agents.find((agent) => agent.id === activeAgent);
+
   return (
-    <div className="orbit-diagram" aria-label="ORBIT supervisor connected to Planner, Researcher, Critic and Writer agents">
+    <div className={`orbit-diagram ${activeAgent ? 'has-active-agent' : ''}`} aria-label="Interactive ORBIT system map. Focus or hover over an agent to see its role.">
       <div className="diagram-toolbar"><span><i className="status-dot" /> ORBIT / SYSTEM MAP</span><span>01 — 04 AGENTS</span></div>
       <svg className="diagram-connectors" viewBox="0 0 600 460" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id="connector" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f2f2ed" stopOpacity=".12"/><stop offset=".5" stopColor="#f2f2ed" stopOpacity=".75"/><stop offset="1" stopColor="#f2f2ed" stopOpacity=".12"/></linearGradient>
         </defs>
-        <path className="connector-path" d="M300 218 C220 165 170 115 118 95" />
-        <path className="connector-path connector-delay-1" d="M300 218 C380 165 430 115 482 95" />
-        <path className="connector-path connector-delay-2" d="M300 218 C220 270 170 330 118 355" />
-        <path className="connector-path connector-delay-3" d="M300 218 C380 270 430 330 482 355" />
+        {agents.map((agent, index) => <path key={agent.id} className={`connector-path connector-delay-${index} ${activeAgent === agent.id ? 'is-active' : ''}`} d={agent.path} />)}
         <path d="M118 95 Q300 -5 482 95 M118 355 Q300 455 482 355" stroke="url(#connector)" strokeWidth="1" strokeDasharray="3 8" fill="none" opacity=".35" />
-        <circle cx="300" cy="218" r="108" stroke="#f2f2ed" strokeOpacity=".07" fill="none" />
-        <circle cx="300" cy="218" r="82" stroke="#f2f2ed" strokeOpacity=".09" strokeDasharray="2 7" fill="none" />
+        <circle cx="300" cy="218" r="108" className="diagram-orbit-ring diagram-orbit-ring-outer" />
+        <circle cx="300" cy="218" r="82" className="diagram-orbit-ring diagram-orbit-ring-inner" />
+        {agents.map((agent) => <circle key={`node-${agent.id}`} r="4" className={`connector-node ${activeAgent === agent.id ? 'is-active' : ''}`}>
+          <animateMotion dur="5.5s" repeatCount="indefinite" path={agent.path} begin={agent.id === 'planner' ? '0s' : agent.id === 'researcher' ? '-1.3s' : agent.id === 'critic' ? '-2.7s' : '-4s'} />
+        </circle>)}
       </svg>
-      <div className="diagram-core"><span className="core-orbit">O</span><strong>ORBIT</strong><small>SUPERVISOR</small></div>
-      <div className="diagram-agent agent-planner"><span>01 / PLAN</span><strong>Planner</strong><small>Breaks down the task</small></div>
-      <div className="diagram-agent agent-researcher"><span>02 / RETRIEVE</span><strong>Researcher</strong><small>Finds supporting evidence</small></div>
-      <div className="diagram-agent agent-critic"><span>03 / EVALUATE</span><strong>Critic</strong><small>Checks gaps and quality</small></div>
-      <div className="diagram-agent agent-writer"><span>04 / SYNTHESIZE</span><strong>Writer</strong><small>Builds the final report</small></div>
+      <div className={`diagram-core ${activeAgent ? 'is-focused' : ''}`}>
+        <span className="core-orbit">O</span><strong>ORBIT</strong><small>{active ? `FOCUS / ${active.name.toUpperCase()}` : 'SUPERVISOR'}</small>
+      </div>
+      {agents.map((agent) => (
+        <button
+          className={`diagram-agent ${agent.position} ${activeAgent === agent.id ? 'is-active' : ''}`}
+          key={agent.id}
+          type="button"
+          aria-pressed={activeAgent === agent.id}
+          aria-label={`${agent.name}: ${agent.detail}`}
+          onMouseEnter={() => setActiveAgent(agent.id)}
+          onMouseLeave={() => setActiveAgent('')}
+          onFocus={() => setActiveAgent(agent.id)}
+          onBlur={(event) => {
+            if (!event.currentTarget.parentElement?.contains(event.relatedTarget)) setActiveAgent('');
+          }}
+          onClick={() => setActiveAgent(agent.id)}
+        >
+          <span>{agent.step}</span><strong>{agent.name}</strong><small>{agent.description}</small>
+        </button>
+      ))}
+      <div className="diagram-detail" aria-live="polite">{active ? active.detail : 'SELECT AN AGENT TO EXPLORE THE WORKFLOW'}</div>
       <div className="diagram-foot"><span>PLAN</span><b /> <span>RESEARCH</span><b /> <span>CRITIQUE</span><b /> <span>WRITE</span></div>
     </div>
   );
@@ -473,7 +499,10 @@ function App() {
     <div className="site-shell">
       <div className="grain" aria-hidden="true" />
       <header className="site-header">
-        <a className="brand" href="#home" onClick={closeMenu} aria-label="Divyam Choudhary home">DC<span>.</span></a>
+        <a className="brand" href="#home" onClick={closeMenu} aria-label="Divyam Choudhary home">
+          <span className="brand-full">DIVYAM CHOUDHARY</span>
+          <span className="brand-mobile">DIVYAM</span>
+        </a>
         <nav className={`main-nav ${menuOpen ? 'nav-open' : ''}`} aria-label="Main navigation">
           <a href="#work" onClick={closeMenu}>Work</a>
           <a href="#experience" onClick={closeMenu}>Experience</a>
@@ -489,10 +518,10 @@ function App() {
       <main>
         <section className="hero section-wrap" id="home">
           <div className="hero-copy">
-            <div className="hero-meta reveal"><span className="meta-line"/> AI ENGINEER <span className="meta-slash">/</span> VIT BHOPAL '27</div>
-            <div className="availability reveal"><span className="availability-dot"/> LOOKING FOR OPPORTUNITIES</div>
+            <div className="hero-meta reveal"><span className="meta-line"/> <strong>DIVYAM CHOUDHARY</strong> <span className="meta-slash">/</span> AI ENGINEER <span className="meta-slash">/</span> VIT BHOPAL '27</div>
+            <div className="hero-focus-tag reveal"><span className="focus-tag-mark"/> AGENTIC AI <span>/</span> MULTI-AGENT SYSTEMS</div>
             <h1 className="reveal">I BUILD<br/><span>AGENTIC AI</span><br/>SYSTEMS<span className="hero-period">.</span></h1>
-            <p className="hero-lede reveal">I work at the intersection of agentic AI and software engineering — building multi-agent workflows, LLM-powered applications and practical products.</p>
+            <p className="hero-lede reveal">I build practical AI systems that bring together LLMs, external tools and multi-agent workflows — turning complex ideas into working applications.</p>
             <div className="hero-actions reveal">
               <a href="#work" className="button button-primary">View selected work <ArrowUpRight /></a>
               <a href="#ask" className="button button-outline">Ask my AI <span>↗</span></a>
@@ -503,7 +532,7 @@ function App() {
               <span className="social-divider"/><span className="location-label">{PROFILE.location}</span>
             </div>
           </div>
-          <div className="hero-visual reveal"><OrbitGraphic/><div className="hero-visual-caption"><span>ORCHESTRATION / 04 AGENTS</span><span>HUMAN-IN-THE-LOOP</span></div></div>
+          <div className="hero-visual reveal"><OrbitGraphic/><div className="hero-visual-caption"><span>ORCHESTRATION / 04 AGENTS</span><span>HUMAN-IN-THE-LOOP</span><a href={projects[0].href} target="_blank" rel="noreferrer">EXPLORE ORBIT <ArrowUpRight size={11}/></a></div></div>
           <div className="hero-bottomline"><span>SCROLL TO EXPLORE</span><span className="scroll-mark">↓</span><span className="hero-index">PORTFOLIO — {new Date().getFullYear()}</span></div>
         </section>
 
@@ -570,7 +599,7 @@ function App() {
         </section>
       </main>
 
-      <footer className="site-footer section-wrap"><a className="brand footer-brand" href="#home">DC<span>.</span></a><span>DESIGNED & BUILT WITH INTENT.</span><span>© {new Date().getFullYear()} DIVYAM CHOUDHARY</span><a href="#home" className="back-top">BACK TO TOP ↑</a></footer>
+      <footer className="site-footer section-wrap"><a className="brand footer-brand" href="#home" aria-label="Back to top — Divyam Choudhary">DIVYAM CHOUDHARY</a><span>DESIGNED & BUILT WITH INTENT.</span><span>© {new Date().getFullYear()} DIVYAM CHOUDHARY</span><a href="#home" className="back-top">BACK TO TOP ↑</a></footer>
     </div>
   );
 }

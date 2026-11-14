@@ -108,6 +108,15 @@ export function isContextualFollowUp(query) {
   return startsAsFollowUp || refersToPriorContext;
 }
 
+export function buildAssistantUserPrompt(latestQuestion, previousQuestion = '') {
+  const latest = String(latestQuestion || '').trim();
+  const previous = String(previousQuestion || '').trim();
+  if (previous && isContextualFollowUp(latest)) {
+    return `Previous question (context only; do not answer it unless the current question asks you to): ${previous}\n\nCurrent question: ${latest}`;
+  }
+  return latest;
+}
+
 function jsonError(response, status, error) {
   response.setHeader('Cache-Control', 'no-store');
   response.status(status).json({ error });
@@ -206,15 +215,17 @@ export default async function handler(request, response) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return jsonError(response, 503, 'The portfolio assistant is not configured yet. Please try again later.');
 
-  const messages = Array.isArray(request.body?.messages) ? request.body.messages : [];
-  const safeMessages = messages.slice(-8).filter((message) =>
-    message && ['user', 'assistant'].includes(message.role) && typeof message.content === 'string' && message.content.length <= 1600,
+  // Only accept user questions from the browser. Assistant messages are not
+  // trusted as history because a caller can forge them in a direct API request.
+  const suppliedMessages = Array.isArray(request.body?.messages) ? request.body.messages.slice(-8) : [];
+  const userMessages = suppliedMessages.filter((message) =>
+    message && message.role === 'user' && typeof message.content === 'string',
   );
-  const latest = safeMessages[safeMessages.length - 1];
-  if (!latest || latest.role !== 'user' || !latest.content.trim()) {
+  const latest = userMessages[userMessages.length - 1];
+  if (!latest || !latest.content.trim()) {
     return jsonError(response, 400, 'Please enter a question about Divyam’s work or experience.');
   }
-  if (safeMessages.some((message) => message.role === 'user' && message.content.length > 600)) {
+  if (userMessages.some((message) => message.content.length > 600)) {
     return jsonError(response, 400, 'Please keep each question under 600 characters.');
   }
 
@@ -233,11 +244,12 @@ export default async function handler(request, response) {
     return jsonError(response, 429, 'You have reached the question limit. Please wait a few minutes and try again.');
   }
 
-  const userMessages = safeMessages.filter((message) => message.role === 'user');
   const previousUser = userMessages.length > 1 ? userMessages[userMessages.length - 2] : null;
-  // Search the current question alone. Only pull in the preceding question for a short/contextual follow-up.
-  const contextualFollowUp = previousUser && isContextualFollowUp(latest.content);
+  // Search the current question alone. Only pull in the preceding user question
+  // for a short/contextual follow-up. Never forward browser-supplied assistant text.
+  const contextualFollowUp = Boolean(previousUser && isContextualFollowUp(latest.content));
   const retrievalQuery = contextualFollowUp ? `${previousUser.content} ${latest.content}` : latest.content;
+  const userPrompt = buildAssistantUserPrompt(latest.content, contextualFollowUp ? previousUser.content : '');
   const retrieved = retrieve(retrievalQuery);
   const context = retrieved.length
     ? retrieved.map((item, index) => `[${index + 1}] ${item.title} (Source: ${item.source})\n${item.text}`).join('\n\n')
@@ -259,12 +271,13 @@ export default async function handler(request, response) {
       },
       body: JSON.stringify({
         model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-        // Keep old topics out of a new standalone question. Preserve a short history only for genuine follow-ups.
-        messages: [{ role: 'system', content: systemPrompt }, ...(contextualFollowUp ? safeMessages.slice(-4) : [latest])],
+        // Use one user turn; prior assistant messages from the browser are never trusted.
+        messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
         temperature: 0.35,
         max_tokens: 700,
         stream: true,
       }),
+      signal: AbortSignal.timeout(24_000),
     });
   } catch {
     return jsonError(response, 502, 'Could not reach the AI service. Please try again in a moment.');

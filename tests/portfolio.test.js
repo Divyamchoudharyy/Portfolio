@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkLocalRateLimit, checkSharedRateLimit, getClientIp, isContextualFollowUp, retrieve } from '../api/ask.js';
+import { buildAssistantUserPrompt, checkLocalRateLimit, checkSharedRateLimit, getClientIp, isContextualFollowUp, retrieve } from '../api/ask.js';
 
 test('skills questions retrieve the résumé skills note first', () => {
   const results = retrieve("What are Divyam's technical skills?");
@@ -107,4 +107,15 @@ test('shared rate limiter calls Upstash with an atomic EVAL counter', async () =
     if (previousEnvironment === undefined) delete process.env.VERCEL_ENV;
     else process.env.VERCEL_ENV = previousEnvironment;
   }
+});
+
+
+test('standalone questions are not polluted by previous topics', () => {
+  assert.equal(buildAssistantUserPrompt('What are Divyam’s skills?', 'Explain ORBIT architecture'), 'What are Divyam’s skills?');
+});
+
+test('short follow-ups carry only the preceding user question as context', () => {
+  const prompt = buildAssistantUserPrompt('What about its persistence?', 'Explain ORBIT architecture');
+  assert.match(prompt, /Previous question .* Explain ORBIT architecture/);
+  assert.match(prompt, /Current question: What about its persistence\?/);
 });

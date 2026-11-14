@@ -2,7 +2,7 @@
 
 [![Portfolio CI](https://github.com/Divyamchoudharyy/Portfolio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Divyamchoudharyy/Portfolio/actions/workflows/ci.yml)
 
-A monochrome, responsive portfolio built with React and Vite. ORBIT is the flagship project, supported by Locust Watch and Drug Discovery AI. The site includes a Groq-powered portfolio assistant backed by BM25 retrieval over curated profile and project notes.
+A monochrome, responsive portfolio built with React and Vite. ORBIT is the flagship project, supported by Locust Watch and Drug Discovery AI. The homepage includes an interactive ORBIT system map with keyboard-accessible agent focus states, and the site includes a Groq-powered portfolio assistant backed by BM25 retrieval over curated profile and project notes.
 
 The assistant is deliberately grounded in verified portfolio information. It distinguishes résumé-listed skills from technologies documented in ORBIT, prioritizes the latest standalone question, and preserves previous context only for genuine follow-ups.
 
@@ -13,11 +13,12 @@ The assistant is deliberately grounded in verified portfolio information. It dis
 - **Retrieval:** BM25 over curated portfolio knowledge
 - **Backend:** Vercel Node.js Function (`api/ask.js`)
 - **Production rate limiting:** Upstash Redis REST API (shared, atomic fixed-window counter)
-- **Quality checks:** Node.js test runner and GitHub Actions
+- **Quality checks:** Node.js test runner and GitHub Actions (Node 24)
+- **Security headers:** CSP, MIME sniffing protection, frame restrictions, referrer policy and permissions policy
 
 ## Run locally
 
-Requirements: Node.js 20 or newer.
+Requirements: Node.js 22 or newer. Node.js 24.x is the recommended local and Vercel runtime for this release.
 
 ```bash
 npm ci
@@ -111,3 +112,6 @@ The assistant should state when a detail is not present in the supplied notes ra
 - Rate-limit settings: `api/ask.js` → `RATE_LIMIT` and `RATE_WINDOW_SECONDS`.
 
 ORBIT is included as the flagship project independently of the current résumé PDF. Add it to the résumé once its project entry is updated.
+
+
+See [`DEPLOY-TODAY.md`](./DEPLOY-TODAY.md) for the final launch checklist, environment-variable matrix and smoke tests.
