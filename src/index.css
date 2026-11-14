@@ -181,8 +181,8 @@ button { color: inherit; }
 .toolkit-section { background: #0e0e0e; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 108px 0 118px; }
 .skills-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 13px; }
 .skill-group { min-height: 155px; padding: 23px; border: 1px solid var(--line); background: #111; }
-.skill-group-top { display: flex; align-items: center; gap: 12px; padding-bottom: 17px; border-bottom: 1px solid var(--line); margin-bottom: 17px; }
-.skill-group-top span { color: #85857f; font: 9px var(--mono); }.skill-group-top h3 { margin: 0; color: #e8e8e2; font: 600 13px var(--display); }
+.skill-group-top { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 17px; border-bottom: 1px solid var(--line); margin-bottom: 17px; }
+.skill-group-top > span { color: #85857f; font: 9px var(--mono); padding-top: 2px; }.skill-group-heading h3 { margin: 0; color: #e8e8e2; font: 600 13px var(--display); }.skill-group-heading small { display: block; margin-top: 5px; color: #777770; font: 8px var(--mono); line-height: 1.5; }
 .skill-chips { display: flex; flex-wrap: wrap; gap: 8px; }.skill-chips span { border: 1px solid var(--line); padding: 7px 9px; color: #b0b0aa; font: 8px var(--mono); }
 
 .assistant-section { padding-top: 112px; padding-bottom: 112px; }

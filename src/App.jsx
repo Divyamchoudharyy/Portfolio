@@ -66,23 +66,27 @@ const projects = [
 const skillGroups = [
   {
     number: '01',
-    label: 'Agentic AI & LLMs',
-    items: ['LangGraph', 'LangChain', 'Gemini API', 'Groq', 'Tool Calling', 'Prompt Engineering', 'LangSmith', 'Tavily'],
+    label: 'Programming & CS',
+    note: 'Skills listed on the résumé',
+    items: ['C++', 'Python', 'JavaScript', 'SQL', 'Data Structures & Algorithms', 'OOP', 'DBMS', 'Operating Systems', 'Computer Networks'],
   },
   {
     number: '02',
-    label: 'Backend & Product',
-    items: ['Python', 'FastAPI', 'REST APIs', 'React', 'Streamlit', 'PostgreSQL', 'SQLite', 'Docker'],
+    label: 'Backend & Web',
+    note: 'Skills listed on the résumé',
+    items: ['FastAPI', 'REST APIs', 'React.js', 'API Integration'],
   },
   {
     number: '03',
-    label: 'Machine Learning & Data',
-    items: ['Scikit-learn', 'Pandas', 'NumPy', 'RDKit', 'xarray', 'Model Evaluation'],
+    label: 'AI / ML & Data',
+    note: 'Skills listed on the résumé',
+    items: ['Gemini API', 'Tool Calling', 'Prompt Engineering', 'Scikit-learn', 'Pandas', 'NumPy', 'RDKit', 'xarray'],
   },
   {
     number: '04',
-    label: 'Languages & Tools',
-    items: ['C++', 'Python', 'JavaScript', 'SQL', 'Git', 'GitHub', 'Linux'],
+    label: 'Project Stack & Tools',
+    note: 'Additional technologies documented across ORBIT and other projects',
+    items: ['LangGraph', 'LangChain', 'Groq', 'Tavily', 'ArXiv', 'LangSmith', 'Streamlit', 'SQLite', 'PostgreSQL', 'Docker', 'Git', 'GitHub', 'Linux', 'Render', 'Netlify'],
   },
 ];
 
@@ -551,8 +555,8 @@ function App() {
         </section>
 
         <section className="toolkit-section" id="toolkit">
-          <div className="section-wrap"><div className="section-heading section-heading-row reveal"><div><span className="section-kicker">04 / TECHNICAL TOOLKIT</span><h2>Tools for the <em>work.</em></h2></div><p className="section-note">The stack changes with the problem. These are the technologies I've worked with across projects and internship experience.</p></div>
-            <div className="skills-grid">{skillGroups.map((group) => <div className="skill-group reveal" key={group.number}><div className="skill-group-top"><span>{group.number}</span><h3>{group.label}</h3></div><div className="skill-chips">{group.items.map((item) => <span key={item}>{item}</span>)}</div></div>)}</div>
+          <div className="section-wrap"><div className="section-heading section-heading-row reveal"><div><span className="section-kicker">04 / TECHNICAL TOOLKIT</span><h2>Tools for the <em>work.</em></h2></div><p className="section-note">The first three groups reflect résumé-listed skills. The final group separates additional technologies documented across my projects.</p></div>
+            <div className="skills-grid">{skillGroups.map((group) => <div className="skill-group reveal" key={group.number}><div className="skill-group-top"><span>{group.number}</span><div className="skill-group-heading"><h3>{group.label}</h3><small>{group.note}</small></div></div><div className="skill-chips">{group.items.map((item) => <span key={item}>{item}</span>)}</div></div>)}</div>
           </div>
         </section>
 
